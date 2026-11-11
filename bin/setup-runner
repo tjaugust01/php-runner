@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use SetupRunner\Config\ConfigLoader;
+use SetupRunner\Runner;
+use SetupRunner\StepFactory;
+
+
+
+$configPath = $argv[1] ?? 'runner.yaml';
+
+$runner = new Runner(new ConfigLoader(), new StepFactory());
+
+$results = $runner->run($configPath, function ($step, $result) {
+    $symbol = $result->success ? "\033[32m✓\033[0m" : "\033[31m✗\033[0m";
+    echo "{$symbol} {$result->message}\n";
+});
+
+$hasFailed = array_filter($results, fn($r) => !$r->success);
+exit($hasFailed ? 1 : 0);
