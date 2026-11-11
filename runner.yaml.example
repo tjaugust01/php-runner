@@ -1,0 +1,60 @@
+steps:
+  - type: check
+    command: "php -v"
+    expect_contains: "PHP 8.2"
+
+  - type: makedir
+    path: "var/cache"
+
+  - type: makedir
+    path: "var/log"
+
+  - type: makedir
+    path: "var/bin"
+
+  - type: cleandir
+    path: "var/cache"
+
+  - type: createfile
+    path: "var/.env.example"
+    content: "APP_ENV=local\nAPP_DEBUG=true\n"
+    skip_if_exists: true
+
+  - type: copy
+    source: "var/.env.example"
+    destination: "var/.env"
+    skip_if_exists: true
+
+  - type: createfile
+    path: "var/log/app.log"
+    content: "=== Setup Log Initialisiert ===\n"
+    skip_if_exists: true
+
+  - type: appendtofile
+    path: "var/log/app.log"
+    content: "[INFO] Setup-Runner gestartet\n"
+
+  - type: createfile
+    path: "var/bin/healthcheck.sh"
+    content: "#!/bin/bash\necho -n 'Bitte Name eingeben: '\nread NAME\nif [ -z \"$NAME\" ]; then\n  echo 'Fehler: Kein Name eingegeben!'\n  exit 1\nfi\necho \"Hallo $NAME!\"\n"
+    skip_if_exists: false
+
+  - type: chmod
+    path: "var/bin/healthcheck.sh"
+    mode: "0755"
+
+  - type: symlink
+    origin: "var/log/app.log"
+    target: "var/sym/latest.log"
+
+  - type: exists
+    path: "var/.env"
+    expect_exists: true
+
+  - type: run
+    command: "./var/bin/healthcheck.sh"
+    input: Tom
+
+  - type: run
+    command: "./var/bin/healthcheck.sh"
+    interactive: true
